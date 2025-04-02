@@ -41,7 +41,7 @@ O Streamlit abrirá automaticamente o dashboard no seu navegador.
 
 ## 📊 Exemplo de Visualização  
 
-![Exemplo do Dashboard](https://via.placeholder.com/800x400?text=Imagem+do+Dashboard)  ~Botar imagem do dashboard aqui
+ ~Botar imagem do dashboard aqui
 
 ## 📌 Funcionalidades  
 
