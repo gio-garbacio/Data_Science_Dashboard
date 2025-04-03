@@ -17,8 +17,8 @@ O dashboard apresenta:
 ```
 📦 Data_Science_Dashboard
  ┣ 📜 dataset_unificado_processado.csv  # Dataset utilizado na análise
- ┣ 📜 final1.py                      # Código principal do dashboard
- ┗ 📜 README.md                          # Este arquivo
+ ┣ 📜 final1.py                         # Código principal do dashboard
+ ┗ 📜 README.md                         # Este arquivo
 ```
 
 ## 🚀 Como Executar  
