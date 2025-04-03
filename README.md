@@ -8,7 +8,7 @@ O dashboard apresenta:
 
 - **Seleção dinâmica de anos e estados** para análise  
 - **Resumo geral** com total de casos e óbitos  
-- **Mapa interativo** dos estados do Sudeste  
+- **Mapa** dos estados do Sudeste  
 - **Gráficos de barras e linhas** para análise temporal e distribuição de casos  
 - **Gráfico de dispersão** para correlação entre fatores climáticos e casos  
 
@@ -27,7 +27,7 @@ O dashboard apresenta:
 Você precisa ter **Python 3.8+** instalado, além das seguintes bibliotecas:  
 
 ```bash
-pip install streamlit pandas numpy plotly requests
+pip install streamlit pandas numpy plotly requests scikit-learn
 ```
 
 ### 2️⃣ Executar o Dashboard  
@@ -41,7 +41,8 @@ O Streamlit abrirá automaticamente o dashboard no seu navegador.
 
 ## 📊 Exemplo de Visualização  
 
- ~Botar imagem do dashboard aqui
+ ![image](https://github.com/user-attachments/assets/1ab3e59c-eebf-4eb7-9b8f-c9a44ba7d874)
+
 
 ## 📌 Funcionalidades  
 
