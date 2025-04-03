@@ -19,6 +19,7 @@ O dashboard apresenta:
  ┣ 📜 dataset_unificado_processado.csv  # Dataset utilizado na análise
  ┣ 📜 final1.py                         # Código principal do dashboard
  ┗ 📜 README.md                         # Este arquivo
+ ┗ 📜 logo mosquito.png                 # Imagem da logo do dashboard
 ```
 
 ## 🚀 Como Executar  
@@ -41,7 +42,8 @@ O Streamlit abrirá automaticamente o dashboard no seu navegador.
 
 ## 📊 Exemplo de Visualização  
 
- ![image](https://github.com/user-attachments/assets/1ab3e59c-eebf-4eb7-9b8f-c9a44ba7d874)
+ 
+![image](https://github.com/user-attachments/assets/4f18259d-d1d6-48d9-ad45-15ca88d1f61c)
 
 
 ## 📌 Funcionalidades  
