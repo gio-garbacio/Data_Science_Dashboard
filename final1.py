@@ -90,7 +90,7 @@ with st.container():
     # COLUNA A1: Seleção de dados para análise
     with colA1:
         # Título principal
-        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Seleção de Dados para Análise</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Seleção de dados para análise</h2>", unsafe_allow_html=True)
         st.markdown("""
     
         """, unsafe_allow_html=True)
@@ -109,15 +109,15 @@ with st.container():
 
         # Seção de Estados
         st.markdown("<h4 style='color: white;'>Estados</h4>", unsafe_allow_html=True)
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2 = st.columns(2)
         with col1:
             estado_es = st.checkbox("ES", value=True)
+            estado_rj = st.checkbox("RJ", value=True)
         with col2:
             estado_mg = st.checkbox("MG", value=True)
-        with col3:
-            estado_rj = st.checkbox("RJ", value=True)
-        with col4:
             estado_sp = st.checkbox("SP", value=True)
+
+
 
         # Processamento das seleções
         anos_selecionados = [ano for ano, ativo in [("2017", ano_2017), ("2018", ano_2018)] if ativo] or ["2017", "2018"]
@@ -180,7 +180,7 @@ with colA2:
 
     # COLUNA A3: Proporção de casos 
     with colA3:
-        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Proporção de Casos por Estado</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Proporção de casos por estado</h2>", unsafe_allow_html=True)
         df_casos_estado = df_filtrado.groupby("ESTADO")["Casos_Total"].sum().reset_index()
         fig_pizza = px.pie(
         df_casos_estado,
@@ -245,7 +245,7 @@ with st.container():
     colB1, colB2 = st.columns([ 5, 5])
     # COLUNA B1: Número de Casos e Óbitos por Estado
     with colB1:
-        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Número de Casos e Óbitos por Estado</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Número de casos e óbitos por estado</h2>", unsafe_allow_html=True)
         st.text("")
         st.text("")
         df_estados = df_filtrado.groupby("ESTADO").agg({
@@ -277,7 +277,7 @@ with st.container():
 
     # COLUNA B2: Evolução Temporal de Casos de Febre Amarela
     with colB2:
-        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Evolução Temporal de Casos de Febre Amarela</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Evolução temporal de casos de febre amarela</h2>", unsafe_allow_html=True)
         st.text("")
         st.text("")
         df_evolucao = df_filtrado.groupby(["ANO_IS", "MES_IS"]).agg({"Casos_Total": "sum"}).reset_index()
@@ -312,11 +312,11 @@ with st.container():
 # ------------------------------------------------------------------------------
 # TERCEIRA LINHA: Seletor de Fator Climático | Correlação entre Casos Totais e Fatores Climáticos | Evolução Temporal de um Fator Climático
 with st.container():
-    colC1, colC2, colC3 = st.columns([3, 5, 5])
+    colC1, colC2, colC3 = st.columns([2, 4, 6])
 
     # COLUNA C1: Seletor de fator climático geral
     with colC1:
-        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Seletor de fator climático</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Seleção de fator climático para analíse</h2>", unsafe_allow_html=True)
 
         opcoes_climaticas_disp = {
             "Temperatura": "TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)",
@@ -324,28 +324,29 @@ with st.container():
             "Radiação": "RADIACAO GLOBAL (Kj/m²)",
             "Pressão": "PRESSAO ATMOSFERICA AO NIVEL DA ESTACAO, HORARIA (mB)"
         }
+
         unidades_climaticas_disp = {
             "Temperatura": "Temperatura média (°C)",
             "Precipitação": "Precipitação total (mm)",
             "Radiação": "Radiação global (Kj/m²)",
             "Pressão": "Pressão atmosférica (mB)"
         }
-        st.markdown("<p style='color: white; font-size: 16px;'>Selecione um fator climático para análise:</p>", unsafe_allow_html=True)
-        var_selecionada = st.selectbox(
-            "",
-            list(opcoes_climaticas_disp.keys()),
-            index=0
+        
+        var_selecionada = st.radio(
+            label="",
+            options=list(opcoes_climaticas_disp.keys()),
+            index=0,
+            key="fator_climatico_radio"
         )
 
     # COLUNA C2: Correlação entre Casos Totais e Fatores Climáticos
     with colC2:
-        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Correlação entre Casos Totais e Fatores Climáticos</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Correlação entre casos totais e fatores climáticos</h2>", unsafe_allow_html=True)
 
         fig_dispersao = px.scatter(
             df_filtrado,
             x=opcoes_climaticas_disp[var_selecionada],
             y="Casos_Total",
-            color="Mortalidade",
             labels={
                 opcoes_climaticas_disp[var_selecionada]: unidades_climaticas_disp[var_selecionada],
                 "Casos_Total": "Casos Totais"
@@ -362,8 +363,7 @@ with st.container():
                 "Estado = %{customdata[0]}<br>"
                 "Data = %{customdata[1]}<br>"
                 "%{xaxis.title.text} = %{x:.2f}<br>"
-                "Casos Totais = %{y:.2f}<br>"
-                "Mortalidade = %{marker.color:.2f}<extra></extra>"
+                "Casos Totais = %{y:.2f}<extra></extra>"
             ),
             customdata=df_filtrado[["ESTADO", "Data_Formatada"]]
         )
@@ -377,52 +377,52 @@ with st.container():
         )
         st.plotly_chart(fig_dispersao, use_container_width=True)
 
-    # COLUNA C3: Evolução Temporal de um Fator Climático
-    with colC3:
-        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Evolução Temporal de um Fator Climático</h2>", unsafe_allow_html=True)
+        # COLUNA C3: Evolução Temporal de um Fator Climático
+        with colC3:
+            st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Evolução temporal de um fator climático</h2>", unsafe_allow_html=True)
 
-        df_climatico = df_filtrado.groupby(["ANO_IS", "MES_IS"]).agg({
-            opcoes_climaticas_disp[var_selecionada]: "mean"
-        }).reset_index()
+            df_climatico = df_filtrado.groupby(["ANO_IS", "MES_IS"]).agg({
+                opcoes_climaticas_disp[var_selecionada]: "mean"
+            }).reset_index()
 
-        df_climatico = df_climatico.rename(
-            columns={opcoes_climaticas_disp[var_selecionada]: var_selecionada}
-        )
-
-        fig_climatico = px.line(
-            df_climatico,
-            x="MES_IS",
-            y=var_selecionada,
-            color="ANO_IS",
-            labels={
-                "MES_IS": "Mês",
-                var_selecionada: unidades_climaticas_disp[var_selecionada],
-                "ANO_IS": "Ano"
-            },
-        )
-        fig_climatico.update_xaxes(
-            tickvals=list(range(1, 13)),
-            ticktext=["Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
-                      "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
-        )
-        fig_climatico.update_traces(
-            hovertemplate="%{y:.2f} em %{x}/%{data.name}<extra></extra>"
-        )
-        fig_climatico.update_layout(
-            paper_bgcolor="#0E1117",
-            plot_bgcolor="#0E1117",
-            font=dict(color="white"),
-            legend=dict(
-                font=dict(color="white")
+            df_climatico = df_climatico.rename(
+                columns={opcoes_climaticas_disp[var_selecionada]: var_selecionada}
             )
-        )
-        st.text("")
-        st.plotly_chart(fig_climatico, use_container_width=True)
+
+            fig_climatico = px.line(
+                df_climatico,
+                x="MES_IS",
+                y=var_selecionada,
+                color="ANO_IS",
+                labels={
+                    "MES_IS": "Mês",
+                    var_selecionada: unidades_climaticas_disp[var_selecionada],
+                    "ANO_IS": "Ano"
+                },
+            )
+            fig_climatico.update_xaxes(
+                tickvals=list(range(1, 13)),
+                ticktext=["Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+                        "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+            )
+            fig_climatico.update_traces(
+                hovertemplate="%{y:.2f} em %{x}/%{data.name}<extra></extra>"
+            )
+            fig_climatico.update_layout(
+                paper_bgcolor="#0E1117",
+                plot_bgcolor="#0E1117",
+                font=dict(color="white"),
+                legend=dict(
+                    font=dict(color="white")
+                )
+            )
+            st.text("")
+            st.plotly_chart(fig_climatico, use_container_width=True)
 
 # ------------------------------------------------------------------------------
 # QUARTA LINHA: Linha Evol. Temporal de Casos, Óbitos e Fatores Climáticos Normalizada
 with st.container():
-    st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Evolução Temporal Normalizada</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Evolução temporal da um fator climático em comparação com o número de casos e de óbitos por Febre Amarela</h2>", unsafe_allow_html=True)
     
     # *Normalização dos dados*
     scaler = MinMaxScaler()
@@ -483,7 +483,7 @@ with st.container():
         y="Valor",
         color="Variável",
         markers=True,
-        labels={"MES_GLOBAL": "Mês", "Valor": "Valor Normalizado"},
+        labels={"MES_GLOBAL": "Tempo", "Valor": f" Fator climático {var_selecionada} normalizado"},
         color_discrete_map=cor_personalizada
     )
 
