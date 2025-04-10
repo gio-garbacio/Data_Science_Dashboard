@@ -652,7 +652,7 @@ with st.container():
 
 
 
-
+st.markdown("<h2 style='font-size: 36px; font-weight: bold; text-align: center; color: white;'>Clusterização</h2>", unsafe_allow_html=True)
 
 ###### Resumo Geral Clusters ######
  # Agrupar dados por cluster
@@ -710,7 +710,7 @@ for idx, row in cluster_summary.iterrows():
         
         kpi_html = f"""
         <div class="cluster-container">
-            <div class="cluster-title">Cluster {cluster}</div>
+            <div class="cluster-title">Resumo do Cluster {cluster}</div>
             <div class="kpi-container">
                 <strong>Casos Totais</strong><br>
                 {total_casos:,}
@@ -736,45 +736,54 @@ col1, col2 = st.columns(2)
 
 with col1:
     # Gráfico de Radar
+
+    # Variáveis escolhidas para o gráfico
     variaveis_escolhidas = [
-        "Casos_Total",
-        "Obitos_Total",
-        "PRECIPITAÇÃO TOTAL, HORÁRIO (mm)",
-        "PRESSAO ATMOSFERICA AO NIVEL DA ESTACAO, HORARIA (mB)",
-        "RADIACAO GLOBAL (Kj/m²)",
-        "TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)"
+    "Casos_Total",
+    "Obitos_Total",
+    "PRECIPITAÇÃO TOTAL, HORÁRIO (mm)",
+    "PRESSAO ATMOSFERICA AO NIVEL DA ESTACAO, HORARIA (mB)",
+    "RADIACAO GLOBAL (Kj/m²)",
+    "TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)"
     ]
 
+    # Mapeamento para nomes legíveis
     nomes_legiveis = {
-        'Casos_Total': 'Casos',
-        'Obitos_Total': 'Óbitos',
-        'PRECIPITAÇÃO TOTAL, HORÁRIO (mm)': 'Precipitação (mm)',
-        'PRESSAO ATMOSFERICA AO NIVEL DA ESTACAO, HORARIA (mB)': 'Pressão Atmosférica (mB)',
-        'RADIACAO GLOBAL (Kj/m²)': 'Radiação (Kj/m²)',
-        'TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)': 'Temperatura (°C)'
+    'Casos_Total': 'Casos',
+    'Obitos_Total': 'Óbitos',
+    'PRECIPITAÇÃO TOTAL, HORÁRIO (mm)': 'Precipitação (mm)',
+    'PRESSAO ATMOSFERICA AO NIVEL DA ESTACAO, HORARIA (mB)': 'Pressão Atmosférica (mB)',
+    'RADIACAO GLOBAL (Kj/m²)': 'Radiação (Kj/m²)',
+    'TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)': 'Temperatura (°C)'
     }
 
+    # Calcular médias das variáveis por cluster
     medias_por_cluster = features_scaled.copy()
     medias_por_cluster['cluster'] = labels
     medias = medias_por_cluster.groupby('cluster')[variaveis_escolhidas].mean().reset_index()
 
-    variaveis = medias.columns.drop('cluster')
+    # Aplicar nomes legíveis às variáveis
+    variaveis_legiveis = [nomes_legiveis[var] for var in variaveis_escolhidas]
 
+    # Construir gráfico radar com nomes legíveis
     fig_radar = go.Figure()
     for i in range(n_clusters):
         fig_radar.add_trace(go.Scatterpolar(
-            r=medias.loc[i, variaveis].values,
-            theta=variaveis,
+            r=medias.loc[i, variaveis_escolhidas].values,
+            theta=variaveis_legiveis,
             fill='toself',
             name=f'Cluster {i}'
         ))
 
+    # Estilização do gráfico
     fig_radar.update_layout(
         polar=dict(radialaxis=dict(visible=True)),
         showlegend=True,
-        title="Comparação dos Clusters por Variáveis (Escaladas)",
         height=500
     )
+
+    # Exibir título e gráfico
+    st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Comparação entre Clusters por Variáveis</h2>", unsafe_allow_html=True)
     st.plotly_chart(fig_radar, use_container_width=True)
 
 with col2:
@@ -787,10 +796,11 @@ with col2:
         casos_agrupados,
         names='cluster',
         values='Casos_Total',
-        title='Distribuição de Casos entre os Clusters',
         color_discrete_sequence=px.colors.qualitative.Set3,
         height=500
     )
+    st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Distribuição de Casos entre os Clusters</h2>", unsafe_allow_html=True)
+
     st.plotly_chart(fig_pizza, use_container_width=True)
 
 
@@ -803,7 +813,8 @@ fig = px.bar(
         y='contagem',  # Frequência
         color='cluster',  # Cor por cluster
         barmode='group',  # barras lado a lado (ou use 'stack' para empilhar)
-        title="Frequência dos Meses por Cluster",
         labels={'MES_IS': 'Mês', 'contagem': 'Frequência', 'cluster': 'Cluster'}
     )
+st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Frequência dos Meses por Cluster</h2>", unsafe_allow_html=True)
+
 st.plotly_chart(fig, use_container_width=True)
