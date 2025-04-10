@@ -1,4 +1,4 @@
-# 📊  Data_Science_Dashboard
+# 📊  Data_Science_Dashboard_Final
 
 Este repositório contém um **dashboard interativo** desenvolvido com **Streamlit** e **Plotly**, que permite visualizar e analisar dados relacionados a casos e óbitos por estado, além de sua correlação com fatores climáticos.  
 
