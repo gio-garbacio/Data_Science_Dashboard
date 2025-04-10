@@ -6,7 +6,10 @@ import plotly.express as px
 import json
 import requests
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
 import base64
+import plotly.graph_objects as go
 
 # Função para usar imagem no cabeçalho
 def get_base64_image(image_path):
@@ -548,3 +551,259 @@ with st.container():
 
     # Exibir o gráfico
     st.plotly_chart(fig_evolucao, use_container_width=True)
+
+
+
+
+
+# CLUSTERIZAÇÃO <====
+with st.container():
+    features = df_filtrado[[
+    'MES_IS',
+    'Casos_Total',
+    'Obitos_Total',
+    'PRECIPITAÇÃO TOTAL, HORÁRIO (mm)',
+    'PRESSAO ATMOSFERICA AO NIVEL DA ESTACAO, HORARIA (mB)',
+    'RADIACAO GLOBAL (Kj/m²)',
+    'TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)',
+    'UMIDADE RELATIVA DO AR, HORARIA (%)'
+    ]].copy()
+    
+    features['MES_IS_MULT_30'] = features['MES_IS'] * 30
+
+    multiplos_30 = features['MES_IS_MULT_30']
+    senos = np.sin(np.radians(multiplos_30))
+    cossenos = np.cos(np.radians(multiplos_30))
+
+    features['sen'] = senos
+    features['cos'] = cossenos
+
+    for col in ['sen', 'cos']:
+        features.loc[np.abs(features[col]) < 0.0001, col] = 0
+
+    features = features.drop(['MES_IS_MULT_30', 'MES_IS'], axis=1)
+
+    columns_to_scale = [
+    "Casos_Total",
+    "Obitos_Total",
+    "PRECIPITAÇÃO TOTAL, HORÁRIO (mm)",
+    "PRESSAO ATMOSFERICA AO NIVEL DA ESTACAO, HORARIA (mB)",
+    "RADIACAO GLOBAL (Kj/m²)",
+    "TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)",
+    "UMIDADE RELATIVA DO AR, HORARIA (%)",
+
+    ]
+    columns_not_scaled = ["sen", "cos"]
+
+    scaler = StandardScaler()
+    features_scaled = features.copy()
+    features_scaled[columns_to_scale] = scaler.fit_transform(features[columns_to_scale])
+
+
+    n_clusters = 3
+
+    # Ajustando o modelo com n_init e algoritmo Elkan
+    kmeans = KMeans(n_clusters=n_clusters, n_init=100, algorithm="elkan", random_state=0)
+
+    # Ajustando o modelo aos dados
+    kmeans.fit(features_scaled)
+
+    # Obtendo as labels do cluster
+    labels = kmeans.labels_
+
+    # Adicionando as labels ao DataFrame
+    features_cluster = features_scaled.copy()
+    features_cluster['cluster'] = labels
+
+    
+
+
+
+
+
+
+    # Recuperar os meses originais
+    features_cluster['MES_IS'] = df_filtrado['MES_IS'].values
+
+# Contar quantas vezes cada mês aparece em cada cluster
+    contagem = features_cluster.groupby(['cluster', 'MES_IS']).size().reset_index(name='contagem')
+
+    # Mapear número do mês para nome com ordem correta
+    meses_ordenados = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", 
+                   "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+
+# Mapeando número do mês para nome (opcional, para deixar bonito)
+    meses_dict = {
+    1: "Jan", 2: "Fev", 3: "Mar", 4: "Abr", 5: "Mai", 6: "Jun",
+    7: "Jul", 8: "Ago", 9: "Set", 10: "Out", 11: "Nov", 12: "Dez"
+    }
+    contagem['MES_IS'] = contagem['MES_IS'].map(meses_dict).astype(
+    pd.CategoricalDtype(categories=meses_ordenados, ordered=True)
+    )
+
+    contagem = contagem.sort_values('MES_IS')
+    
+
+    
+
+
+
+
+
+
+
+
+
+###### Resumo Geral Clusters ######
+ # Agrupar dados por cluster
+cluster_summary = df_filtrado.groupby(features_cluster['cluster']).agg(
+    total_casos=('Casos_Total', 'sum'),
+    total_obitos=('Obitos_Total', 'sum')
+).reset_index()
+
+# Calcular taxa de mortalidade por cluster
+cluster_summary['taxa_mortalidade'] = (cluster_summary['total_obitos'] / cluster_summary['total_casos'] * 100).round(2)
+
+# CSS ORIGINAL (sem modificações)
+kpi_style = """
+<style>
+    .kpi-container {
+        background-color: #003366;
+        color: white;
+        text-align: center;
+        padding: 15px;
+        border-radius: 10px;
+        font-size: 20px;
+        margin: 10px;
+        flex: 1;
+        min-width: 200px;
+    }
+    .cluster-container {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 30px;
+    }
+    .cluster-title {
+        font-size: 24px;
+        color: #003366;
+        margin: 20px 0;
+        width: 100%;
+        text-align: center;
+    }
+</style>
+"""
+
+st.markdown(kpi_style, unsafe_allow_html=True)
+
+# Criar 3 colunas
+cols = st.columns(3)
+
+# Preencher cada coluna com um cluster
+for idx, row in cluster_summary.iterrows():
+    with cols[idx]:
+        cluster = int(row['cluster'])
+        total_casos = row['total_casos']
+        total_obitos = row['total_obitos']
+        mortalidade = row['taxa_mortalidade']
+        
+        kpi_html = f"""
+        <div class="cluster-container">
+            <div class="cluster-title">Cluster {cluster}</div>
+            <div class="kpi-container">
+                <strong>Casos Totais</strong><br>
+                {total_casos:,}
+            </div>
+            <div class="kpi-container">
+                <strong>Óbitos Totais</strong><br>
+                {total_obitos:,}
+            </div>
+            <div class="kpi-container">
+                <strong>Mortalidade</strong><br>
+                {mortalidade}%
+            </div>
+        </div>
+        """
+        st.markdown(kpi_html, unsafe_allow_html=True)
+
+
+
+
+###### Gráfico de radar e pizza clusterização ######
+# Criar duas colunas
+col1, col2 = st.columns(2)
+
+with col1:
+    # Gráfico de Radar
+    variaveis_escolhidas = [
+        "Casos_Total",
+        "Obitos_Total",
+        "PRECIPITAÇÃO TOTAL, HORÁRIO (mm)",
+        "PRESSAO ATMOSFERICA AO NIVEL DA ESTACAO, HORARIA (mB)",
+        "RADIACAO GLOBAL (Kj/m²)",
+        "TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)"
+    ]
+
+    nomes_legiveis = {
+        'Casos_Total': 'Casos',
+        'Obitos_Total': 'Óbitos',
+        'PRECIPITAÇÃO TOTAL, HORÁRIO (mm)': 'Precipitação (mm)',
+        'PRESSAO ATMOSFERICA AO NIVEL DA ESTACAO, HORARIA (mB)': 'Pressão Atmosférica (mB)',
+        'RADIACAO GLOBAL (Kj/m²)': 'Radiação (Kj/m²)',
+        'TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)': 'Temperatura (°C)'
+    }
+
+    medias_por_cluster = features_scaled.copy()
+    medias_por_cluster['cluster'] = labels
+    medias = medias_por_cluster.groupby('cluster')[variaveis_escolhidas].mean().reset_index()
+
+    variaveis = medias.columns.drop('cluster')
+
+    fig_radar = go.Figure()
+    for i in range(n_clusters):
+        fig_radar.add_trace(go.Scatterpolar(
+            r=medias.loc[i, variaveis].values,
+            theta=variaveis,
+            fill='toself',
+            name=f'Cluster {i}'
+        ))
+
+    fig_radar.update_layout(
+        polar=dict(radialaxis=dict(visible=True)),
+        showlegend=True,
+        title="Comparação dos Clusters por Variáveis (Escaladas)",
+        height=500
+    )
+    st.plotly_chart(fig_radar, use_container_width=True)
+
+with col2:
+    # Gráfico de Pizza
+    casos_por_cluster = df_filtrado.copy()
+    casos_por_cluster['cluster'] = labels
+    casos_agrupados = casos_por_cluster.groupby('cluster')['Casos_Total'].sum().reset_index()
+
+    fig_pizza = px.pie(
+        casos_agrupados,
+        names='cluster',
+        values='Casos_Total',
+        title='Distribuição de Casos entre os Clusters',
+        color_discrete_sequence=px.colors.qualitative.Set3,
+        height=500
+    )
+    st.plotly_chart(fig_pizza, use_container_width=True)
+
+
+
+
+##### Gráfico de barra: Frequencia de meses por cluster #####
+fig = px.bar(
+        contagem,
+        x='MES_IS',  # Mês no eixo x
+        y='contagem',  # Frequência
+        color='cluster',  # Cor por cluster
+        barmode='group',  # barras lado a lado (ou use 'stack' para empilhar)
+        title="Frequência dos Meses por Cluster",
+        labels={'MES_IS': 'Mês', 'contagem': 'Frequência', 'cluster': 'Cluster'}
+    )
+st.plotly_chart(fig, use_container_width=True)
