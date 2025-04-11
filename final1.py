@@ -1,5 +1,4 @@
 import streamlit as st
-
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -120,13 +119,17 @@ with st.container():
             estado_mg = st.checkbox("MG", value=True)
             estado_sp = st.checkbox("SP", value=True)
 
-
-
         # Processamento das seleções
         anos_selecionados = [ano for ano, ativo in [("2017", ano_2017), ("2018", ano_2018)] if ativo] or ["2017", "2018"]
         estados_selecionados = [
             estado for estado, ativo in [("ES", estado_es), ("MG", estado_mg), ("RJ", estado_rj), ("SP", estado_sp)] if ativo
         ] or ["ES", "MG", "RJ", "SP"]
+        
+        # Texto dinâmico com o resumo das seleções
+        texto_estados = ", ".join(estados_selecionados)
+        texto_anos = " e ".join(anos_selecionados) if len(anos_selecionados) == 2 else anos_selecionados[0]
+        texto_resumo = f"<p style='color: rgba(255, 255, 255, 0.7); font-size: 16px; text-align: center;'>Exibindo dados de: <strong>{texto_estados}</strong> entre <strong>{texto_anos}</strong></p>"
+        st.markdown(texto_resumo, unsafe_allow_html=True)
 
         # Filtragem dos dados
         df_filtrado = df[df["ANO_IS"].astype(str).isin(anos_selecionados) & df["ESTADO"].isin(estados_selecionados)]
@@ -137,7 +140,7 @@ with st.container():
 
     # COLUNA A2: Gráfico de Mapa do Sudeste
 with colA2:
-    st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Mapa do Sudeste</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Visualização dos estados selecionados no Sudeste</h2>", unsafe_allow_html=True)
 
     df_mapa = pd.DataFrame({"ESTADO": ["ES", "MG", "RJ", "SP"]})
     df_mapa["Selecionado"] = df_mapa["ESTADO"].apply(
@@ -248,7 +251,7 @@ with st.container():
     colB1, colB2 = st.columns([ 5, 5])
     # COLUNA B1: Número de Casos e Óbitos por Estado
     with colB1:
-        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Número de casos e óbitos por estado</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Número de casos e óbitos por febre amarela por estado</h2>", unsafe_allow_html=True)
         st.text("")
         st.text("")
         df_estados = df_filtrado.groupby("ESTADO").agg({
@@ -280,7 +283,7 @@ with st.container():
 
     # COLUNA B2: Evolução Temporal de Casos de Febre Amarela
     with colB2:
-        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Evolução temporal de casos de febre amarela</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Evolução mensal dos casos de febre amarela por ano</h2>", unsafe_allow_html=True)
         st.text("")
         st.text("")
         df_evolucao = df_filtrado.groupby(["ANO_IS", "MES_IS"]).agg({"Casos_Total": "sum"}).reset_index()
@@ -320,6 +323,7 @@ with st.container():
     # COLUNA C1: Seletor de fator climático geral
     with colC1:
         st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Seleção de fator climático para analíse</h2>", unsafe_allow_html=True)
+        
 
         opcoes_climaticas_disp = {
             "Temperatura": "TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)",
@@ -341,6 +345,15 @@ with st.container():
             index=0,
             key="fator_climatico_radio"
         )
+        # Texto dinâmico com o resumo da seleção do fator climático
+        texto_fator_climatico = f"""
+        <p style='color: rgba(255, 255, 255, 0.7); font-size: 16px; text-align: center;'>
+        <strong>{var_selecionada}</strong><br> é o 
+        fator influencia diretamente os dois gráficos ao lado e o gráfico abaixo.
+        </p>
+        """
+        st.markdown(texto_fator_climatico, unsafe_allow_html=True)
+        
 
     # COLUNA C2: Correlação entre Casos Totais e Fatores Climáticos
     with colC2:
@@ -378,11 +391,13 @@ with st.container():
                 font=dict(color="white")
             )
         )
+
         st.plotly_chart(fig_dispersao, use_container_width=True)
+
 
         # COLUNA C3: Evolução Temporal de um Fator Climático
         with colC3:
-            st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Evolução temporal de um fator climático</h2>", unsafe_allow_html=True)
+            st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Evolução mensal dos fatores climáticos por ano</h2>", unsafe_allow_html=True)
 
             df_climatico = df_filtrado.groupby(["ANO_IS", "MES_IS"]).agg({
                 opcoes_climaticas_disp[var_selecionada]: "mean"
@@ -422,10 +437,11 @@ with st.container():
             st.text("")
             st.plotly_chart(fig_climatico, use_container_width=True)
 
+
 # ------------------------------------------------------------------------------
 # QUARTA LINHA: Linha Evol. Temporal de Casos, Óbitos e Fatores Climáticos Normalizada
 with st.container():
-    st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Evolução temporal da um fator climático em comparação com o número de casos e de óbitos por Febre Amarela</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Evolução mensal de um fator climático em comparação com o número de casos e de óbitos por febre amarela</h2>", unsafe_allow_html=True)
     
     # *Normalização dos dados*
     scaler = MinMaxScaler()
@@ -553,12 +569,9 @@ with st.container():
     st.plotly_chart(fig_evolucao, use_container_width=True)
 
 
-
-
-
 # CLUSTERIZAÇÃO <====
 with st.container():
-    features = df_filtrado[[
+    features = df[[
     'MES_IS',
     'Casos_Total',
     'Obitos_Total',
@@ -615,15 +628,10 @@ with st.container():
     features_cluster = features_scaled.copy()
     features_cluster['cluster'] = labels
 
-    
-
-
-
-
 
 
     # Recuperar os meses originais
-    features_cluster['MES_IS'] = df_filtrado['MES_IS'].values
+    features_cluster['MES_IS'] = df['MES_IS'].values
 
 # Contar quantas vezes cada mês aparece em cada cluster
     contagem = features_cluster.groupby(['cluster', 'MES_IS']).size().reset_index(name='contagem')
@@ -643,20 +651,16 @@ with st.container():
 
     contagem = contagem.sort_values('MES_IS')
     
-
     
+# ------------------------------------------------------------------------------
+# QUINTA LINHA: CLusterização
 
-
-
-
-
-
-
-st.markdown("<h2 style='font-size: 36px; font-weight: bold; text-align: center; color: white;'>Clusterização</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='font-size: 36px; font-weight: bold; text-align: center; color: white;'>Padrões de ocorrência dos casos de febre amarela</h2>", unsafe_allow_html=True)
 
 ###### Resumo Geral Clusters ######
- # Agrupar dados por cluster
-cluster_summary = df_filtrado.groupby(features_cluster['cluster']).agg(
+
+# Agrupar dados por cluster
+cluster_summary = df.groupby(features_cluster['cluster']).agg(
     total_casos=('Casos_Total', 'sum'),
     total_obitos=('Obitos_Total', 'sum')
 ).reset_index()
@@ -664,53 +668,66 @@ cluster_summary = df_filtrado.groupby(features_cluster['cluster']).agg(
 # Calcular taxa de mortalidade por cluster
 cluster_summary['taxa_mortalidade'] = (cluster_summary['total_obitos'] / cluster_summary['total_casos'] * 100).round(2)
 
-# CSS ORIGINAL (sem modificações)
+# Descrições de cada cluster
+descricoes_clusters = {
+    0: "Surtos Intensos no Verão — Elevado número de casos, concentrados nos meses quentes e chuvosos. Indica episódios de surtos.",
+    1: "Padrão Esperado de Verão — Volume significativo de casos, também ocorrendo no verão, mas dentro de um comportamento mais típico.",
+    2: "Alta Mortalidade com Poucos Casos — Baixa incidência, porém com taxa de mortalidade expressiva. Pode indicar falhas no diagnóstico precoce ou acesso a tratamento."
+}
+
+# CSS personalizado para cartões
 kpi_style = """
 <style>
+    .cluster-card {
+        background-color: #F5F5F5;
+        border: 2px solid #003366;
+        border-radius: 15px;
+        padding: 20px;
+        margin: 15px 5px;
+        color: #003366;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .cluster-title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #003366;
+    }
+    .cluster-desc {
+        font-size: 16px;
+        margin-bottom: 20px;
+        color: #003366;
+    }
     .kpi-container {
         background-color: #003366;
         color: white;
         text-align: center;
         padding: 15px;
         border-radius: 10px;
-        font-size: 20px;
-        margin: 10px;
-        flex: 1;
-        min-width: 200px;
-    }
-    .cluster-container {
-        display: flex;
-        justify-content: space-around;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 30px;
-    }
-    .cluster-title {
-        font-size: 24px;
-        color: #003366;
-        margin: 20px 0;
-        width: 100%;
-        text-align: center;
+        font-size: 18px;
+        margin: 10px auto;
     }
 </style>
 """
-
 st.markdown(kpi_style, unsafe_allow_html=True)
 
 # Criar 3 colunas
 cols = st.columns(3)
 
-# Preencher cada coluna com um cluster
+# Preencher cada coluna com o card do cluster
 for idx, row in cluster_summary.iterrows():
     with cols[idx]:
         cluster = int(row['cluster'])
         total_casos = row['total_casos']
         total_obitos = row['total_obitos']
         mortalidade = row['taxa_mortalidade']
-        
-        kpi_html = f"""
-        <div class="cluster-container">
-            <div class="cluster-title">Resumo do Cluster {cluster}</div>
+
+        # HTML do card do cluster
+        cluster_html = f"""
+        <div class="cluster-card">
+            <div class="cluster-title">Agrupamento {cluster}</div>
+            <div class="cluster-desc">{descricoes_clusters[cluster]}</div>
             <div class="kpi-container">
                 <strong>Casos Totais</strong><br>
                 {total_casos:,}
@@ -720,14 +737,18 @@ for idx, row in cluster_summary.iterrows():
                 {total_obitos:,}
             </div>
             <div class="kpi-container">
-                <strong>Mortalidade</strong><br>
+                <strong>Taxa de Mortalidade</strong><br>
                 {mortalidade}%
             </div>
         </div>
         """
-        st.markdown(kpi_html, unsafe_allow_html=True)
-
-
+        st.markdown(cluster_html, unsafe_allow_html=True)
+st.markdown("""
+    <p style='color: rgba(255, 255, 255, 0.7); font-size: 16px; text-align: center;'>
+        Os agrupamentos forma gerados considerando <u>todos os dados disponíveis</u>, 
+        independentemente dos filtros de ano e estado aplicados acima.
+    </p>
+""", unsafe_allow_html=True)
 
 
 ###### Gráfico de radar e pizza clusterização ######
@@ -739,22 +760,29 @@ with col1:
 
     # Variáveis escolhidas para o gráfico
     variaveis_escolhidas = [
-    "Casos_Total",
-    "Obitos_Total",
-    "PRECIPITAÇÃO TOTAL, HORÁRIO (mm)",
-    "PRESSAO ATMOSFERICA AO NIVEL DA ESTACAO, HORARIA (mB)",
-    "RADIACAO GLOBAL (Kj/m²)",
-    "TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)"
+        "Casos_Total",
+        "Obitos_Total",
+        "PRECIPITAÇÃO TOTAL, HORÁRIO (mm)",
+        "PRESSAO ATMOSFERICA AO NIVEL DA ESTACAO, HORARIA (mB)",
+        "RADIACAO GLOBAL (Kj/m²)",
+        "TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)"
     ]
 
     # Mapeamento para nomes legíveis
     nomes_legiveis = {
-    'Casos_Total': 'Casos',
-    'Obitos_Total': 'Óbitos',
-    'PRECIPITAÇÃO TOTAL, HORÁRIO (mm)': 'Precipitação (mm)',
-    'PRESSAO ATMOSFERICA AO NIVEL DA ESTACAO, HORARIA (mB)': 'Pressão Atmosférica (mB)',
-    'RADIACAO GLOBAL (Kj/m²)': 'Radiação (Kj/m²)',
-    'TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)': 'Temperatura (°C)'
+        'Casos_Total': 'Casos',
+        'Obitos_Total': 'Óbitos',
+        'PRECIPITAÇÃO TOTAL, HORÁRIO (mm)': 'Precipitação (mm)',
+        'PRESSAO ATMOSFERICA AO NIVEL DA ESTACAO, HORARIA (mB)': 'Pressão Atmosférica (mB)',
+        'RADIACAO GLOBAL (Kj/m²)': 'Radiação (Kj/m²)',
+        'TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)': 'Temperatura (°C)'
+    }
+
+    # Cores dos clusters (iguais às do gráfico de pizza)
+    cores_clusters = {
+        0: "#0068c9",   # Azul
+        1: "#FF4B4B",   # Vermelhro
+        2: "#FCDB04"    # Amarelo
     }
 
     # Calcular médias das variáveis por cluster
@@ -765,42 +793,70 @@ with col1:
     # Aplicar nomes legíveis às variáveis
     variaveis_legiveis = [nomes_legiveis[var] for var in variaveis_escolhidas]
 
-    # Construir gráfico radar com nomes legíveis
+    # Construir gráfico radar com nomes legíveis e cores definidas
     fig_radar = go.Figure()
     for i in range(n_clusters):
         fig_radar.add_trace(go.Scatterpolar(
             r=medias.loc[i, variaveis_escolhidas].values,
             theta=variaveis_legiveis,
             fill='toself',
-            name=f'Cluster {i}'
+            name=f'Agrupamento {i}',
+            line=dict(color=cores_clusters.get(i, '#CCCCCC'))  # cor padrão cinza caso o cluster não esteja no dict
         ))
 
     # Estilização do gráfico
     fig_radar.update_layout(
-        polar=dict(radialaxis=dict(visible=True)),
+        polar=dict(
+            bgcolor="#F5F5F5",  # fundo escuro dentro do círculo
+            radialaxis=dict(visible=True, linecolor='white', gridcolor='gray', tickfont=dict(color='white'))
+        ),
+        paper_bgcolor="#0E1117",
+        plot_bgcolor="#0E1117",
+        font=dict(color="white"),
         showlegend=True,
         height=500
     )
 
     # Exibir título e gráfico
-    st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Comparação entre Clusters por Variáveis</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Comparação entre agrupamentos por variáveis</h2>", unsafe_allow_html=True)
     st.plotly_chart(fig_radar, use_container_width=True)
 
+
 with col2:
-    # Gráfico de Pizza
-    casos_por_cluster = df_filtrado.copy()
+# Gráfico de Pizza - Distribuição de Casos entre os Clusters
+    casos_por_cluster = df.copy()
     casos_por_cluster['cluster'] = labels
     casos_agrupados = casos_por_cluster.groupby('cluster')['Casos_Total'].sum().reset_index()
 
+    # Criar nova coluna com nomes personalizados
+    casos_agrupados['agrupamento'] = casos_agrupados['cluster'].apply(lambda x: f"Agrupamento {x}")
+
     fig_pizza = px.pie(
         casos_agrupados,
-        names='cluster',
+        names='agrupamento',
         values='Casos_Total',
-        color_discrete_sequence=px.colors.qualitative.Set3,
+        color='cluster',
+        color_discrete_map={
+            0: "#0068c9",  # Azul
+            1: "#83c9ff",  # Azul claro 
+            2: "#FCDB04",  # Amarelo
+        },
         height=500
     )
-    st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Distribuição de Casos entre os Clusters</h2>", unsafe_allow_html=True)
 
+    fig_pizza.update_traces(
+        hovertemplate="%{value} casos no %{label}",
+        textinfo='percent+label'
+    )
+
+    fig_pizza.update_layout(
+        paper_bgcolor="#0E1117",
+        plot_bgcolor="#0E1117",
+        font=dict(color="white"),
+        legend=dict(font=dict(color="white"))
+    )
+
+    st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Distribuição de casos entre os agrupamentos</h2>", unsafe_allow_html=True)
     st.plotly_chart(fig_pizza, use_container_width=True)
 
 
@@ -815,6 +871,11 @@ fig = px.bar(
         barmode='group',  # barras lado a lado (ou use 'stack' para empilhar)
         labels={'MES_IS': 'Mês', 'contagem': 'Frequência', 'cluster': 'Cluster'}
     )
-st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Frequência dos Meses por Cluster</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='font-size: 26px; font-weight: bold; text-align: center; color: white;'>Frequência dos meses por agrupamentos</h2>", unsafe_allow_html=True)
 
 st.plotly_chart(fig, use_container_width=True)
+st.markdown("""
+    <p style='color: rgba(255, 255, 255, 0.7); font-size: 16px; text-align: center;'>
+       Quantas vezes os casos de cada agrupamento ocorreram em cada mês, revelando padrões sazonais — como concentração no verão.
+    </p>
+""", unsafe_allow_html=True)
