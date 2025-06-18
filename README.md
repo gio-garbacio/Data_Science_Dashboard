@@ -1,4 +1,4 @@
-# 📊  Data_Science_Dashboard_Final
+# 📊  Data_Science_Dashboard
 
 Este repositório contém um **dashboard interativo** desenvolvido com **Streamlit** e **Plotly**, que permite visualizar e analisar dados relacionados a casos e óbitos por estado, além de sua correlação com fatores climáticos.  
 
@@ -31,11 +31,18 @@ Você precisa ter **Python 3.8+** instalado, além das seguintes bibliotecas:
 pip install streamlit pandas numpy plotly requests scikit-learn
 ```
 
+
 ### 2️⃣ Executar o Dashboard  
 Clone este repositório e execute o seguinte comando no terminal:  
 
 ```bash
 streamlit run final1.py
+```
+
+ou
+
+```bash
+python -m streamlit run final1.py
 ```
 
 O Streamlit abrirá automaticamente o dashboard no seu navegador.  
